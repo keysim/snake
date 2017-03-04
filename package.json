@@ -1,0 +1,32 @@
+{
+  "name": "snake",
+  "version": "1.0.0",
+  "description": "Internet of things special project",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/keysim/snake.git"
+  },
+  "keywords": [
+    "snake",
+    "keysim",
+    "internet",
+    "things",
+    "console"
+  ],
+  "author": "Keysim",
+  "license": "ISC",
+  "bugs": {
+    "url": "http://github.com/keysim/snake/issues"
+  },
+  "homepage": "http://github.com/keysim/snake#readme",
+  "dependencies": {
+    "body-parser": "^1.17.0",
+    "express": "^4.15.0",
+    "socket.io": "^1.7.3"
+  }
+}

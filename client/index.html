@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <script> var me = "LOL"; </script>
+    <meta charset="utf-8" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style type="text/css">
+        html, body, div, span,
+        h1, h2, h3, h4, h5, h6,
+        p, a, img, i, form {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            vertical-align: baseline;
+        }
+        .player {
+            width:32px;
+            height:32px;
+            position:absolute;
+            top:0;
+            left:0;
+            background-size: 160px 128px;
+            background-image: url("/static/snake.png");
+            z-index: 4;
+        }
+        .item {
+            width:10px;
+            height:10px;
+            margin-left: 5px;
+            margin-top: 5px;
+            background-color:red;
+            position:absolute;
+            top:0;
+            left:0;
+            border-radius: 5px;
+        }
+        #map {
+            width:896px;
+            height:896px;
+            border:5px solid red;
+            position:relative;
+        }
+        .right {
+            background-position: -128px 0;
+        }
+        .left {
+            background-position: -96px -32px;
+        }
+        .up {
+            background-position: -96px 0;
+        }
+        .down {
+            background-position: -128px -32px; /* 32 x 32 */
+        }
+        body {
+            width: 810px;
+        }
+    </style>
+</head>
+
+<body>
+<div>
+    <div id="map" class="map">
+    </div>
+</div>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="http://localhost:1234/socket.io/socket.io.js"></script>
+<script>
+    /*global io $ */
+    var lastDir = "down";
+    var players = {};
+    var socket = io('http://localhost:1234'); //{query: "login="+me+"&pwd=0000"}
+    socket.on('msg', function(msg) {
+        console.log(msg);
+    });
+
+    socket.on('player/add', function(player) {
+        if (!players[player.name]){
+            var html  = "<div id='" + player.name + "' class='player'></div>";
+            $("#map").append(html);
+            console.log("Connexion of " + player.name);
+        }
+        players[player.name] = player;
+        $("#" + player.name).css("left", player.x);
+        $("#" + player.name).css("top", player.y);
+        $("#" + player.name).addClass(player.rot);
+    });
+
+    socket.on('player/move', function(player) {
+        $("#" + player.name).css("left", player.x);
+        $("#" + player.name).css("top", player.y);
+        if(lastDir != player.rot) {
+            $("#" + player.name).removeClass();
+            $("#" + player.name).addClass("player " + player.rot);
+            lastDir = player.rot;
+        }
+    });
+    var dir = "right";
+    $('html').keydown(function(event) {
+        var move = true;
+        if(event.which == 81 || event.which == 37)// Left
+            dir = "left";
+        else if(event.which == 90 || event.which == 38)// Up
+            dir = "up";
+        else if(event.which == 68 || event.which == 39)// Right
+            dir = "right";
+        else if(event.which == 83 || event.which == 40)// Down
+            dir = "down";
+        else
+            move = false;
+        if(event.which == 32)
+            socket.emit("speed");
+        if (move)
+            socket.emit("move", dir);
+    });
+</script>
+</body>
+</html>
