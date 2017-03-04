@@ -70,7 +70,7 @@
     /*global io $ */
     var lastDir = "down";
     var players = {};
-    var socket = io('http://127.0.0.1:1234'); //{query: "login="+me+"&pwd=0000"}
+    var socket = io('http:/192.168.1.100:1234'); //{query: "login="+me+"&pwd=0000"}
     socket.on('msg', function(msg) {
         console.log(msg);
     });
