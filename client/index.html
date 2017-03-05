@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <script> var me = "LOL"; </script>
+    <script> var IP_SERVER = 'http://localhost:1234'; </script>
+    <script src="http://localhost:1234/static/socket.io.js"></script>
+    <script src="http://localhost:1234/static/PxGamepad.js"></script>
     <meta charset="utf-8" />
     <title>Snake</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
@@ -65,12 +67,62 @@
     </div>
 </div>
 <script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
-<script src="http://192.168.1.100:1234/static/socket.io.js"></script>
 <script>
     /*global io $ */
     var lastDir = "down";
     var players = {};
-    var socket = io('http://192.168.1.100:1234'); //{query: "login="+me+"&pwd=0000"}
+    var socket = io(IP_SERVER); //{query: "login="+me+"&pwd=0000"}
+    var gamepad = new PxGamepad();
+    var padDir = "down";
+    var speed = false;
+
+    gamepad.start();
+
+    gamepad.on('dpadUp', function() {
+        socket.emit("move", "up");
+    });
+    gamepad.on('dpadDown', function() {
+        socket.emit("move", "down");
+    });
+    gamepad.on('dpadLeft', function() {
+        socket.emit("move", "left");
+    });
+    gamepad.on('dpadRight', function() {
+        socket.emit("move", "right");
+    });
+
+    function getDir(x, y) {
+        if(x > 0.3 && y > -0.5 && y < 0.5)
+            return "right";
+        else if(x < -0.3 && y > -0.5 && y < 0.5)
+            return "left";
+        else if(y < -0.3 && x > -0.5 && x < 0.5)
+            return "up";
+        else if(y > 0.3 && x > -0.5 && x < 0.5)
+            return "down";
+        else
+            return padDir;
+    }
+
+    setInterval(function() {
+        gamepad.update();
+        if(gamepad.buttons["a"] && !speed){
+            socket.emit("speed");
+            speed = true;
+            console.log("Speed !");
+        }
+        else if(!gamepad.buttons["a"] && speed){
+            socket.emit("speed");
+            speed = false;
+            console.log("Speed OFF!");
+        }
+        padDir = getDir(gamepad.leftStick.x, gamepad.leftStick.y);
+        if(lastDir != padDir){
+            lastDir = padDir;
+            socket.emit("move", padDir);
+        }
+    },25);
+
     socket.on('msg', function(msg) {
         console.log(msg);
     });
@@ -90,13 +142,10 @@
     socket.on('player/move', function(player) {
         $("#" + player.name).css("left", player.x);
         $("#" + player.name).css("top", player.y);
-        if(lastDir != player.rot) {
-            $("#" + player.name).removeClass();
-            $("#" + player.name).addClass("player " + player.rot);
-            lastDir = player.rot;
-        }
+        $("#" + player.name).removeClass();
+        $("#" + player.name).addClass("player " + player.rot);
     });
-    var dir = "right";
+    /*var dir = "right";
     $('html').keydown(function(event) {
         var move = true;
         if(event.which == 81 || event.which == 37)// Left
@@ -113,7 +162,7 @@
             socket.emit("speed");
         if (move)
             socket.emit("move", dir);
-    });
+    });*/
 </script>
 </body>
 </html>
