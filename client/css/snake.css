@@ -1,0 +1,77 @@
+html, body, div, span,
+h1, h2, h3, h4, h5, h6,
+p, a, img, i, form {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    vertical-align: baseline;
+}
+.player {
+    width:32px;
+    height:32px;
+    position:absolute;
+    top:0;
+    left:0;
+    background-size: 160px 128px;
+    background-image: url("/img/snake.png");
+    z-index: 4;
+}
+.elbow {
+    width:32px;
+    height:32px;
+    position:absolute;
+    top:0;
+    left:0;
+    background-size: 160px 128px;
+    background-image: url("/img/snake.png");
+    z-index: 2;
+}
+.body_w {
+    width:1px;
+    height:32px;
+    position:absolute;
+    top:0;
+    left:0;
+    background-image: url("/img/body_w.png");
+    background-repeat: repeat-x;
+    z-index: 2;
+}
+.body_h {
+    width:32px;
+    height:1px;
+    position:absolute;
+    top:0;
+    left:0;
+    background-image: url("/img/body_h.png");
+    background-repeat: repeat-y;
+    z-index: 2;
+}
+.item {
+    width:10px;
+    height:10px;
+    margin-left: 5px;
+    margin-top: 5px;
+    background-color:red;
+    position:absolute;
+    top:0;
+    left:0;
+    border-radius: 5px;
+}
+#map {
+    border:5px solid red;
+    position:relative;
+    /*width: 896px;
+    height: 896px;*/
+}
+.right {
+    background-position: -128px 0;
+}
+.left {
+    background-position: -96px -32px;
+}
+.up {
+    background-position: -96px 0;
+}
+.down {
+    background-position: -128px -32px; /* 32 x 32 */
+}

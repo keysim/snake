@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+    <script> var IP_SERVER = 'http://localhost:1234'; </script>
+    <script src="http://localhost:1234/static/PxGamepad.js"></script>
+
+    <!--
+    <script src="http://localhost:1234/static/socket.io.js"></script>
+    <script> var IP_SERVER = 'http://192.168.1.100:1234'; </script>
+    <script src="http://192.168.1.100:1234/static/socket.io.js"></script>
+    <script src="http://192.168.1.100:1234/static/PxGamepad.js"></script>
+    -->
+    <meta charset="utf-8" />
+    <title>Snake</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css">
+    <style type="text/css">
+        html, body, div, span,
+        h1, h2, h3, h4, h5, h6,
+        p, a, img, i, form {
+            margin: 0;
+            padding: 0;
+            border: 0;
+            vertical-align: baseline;
+        }
+        .player {
+            width:32px;
+            height:32px;
+            position:absolute;
+            top:0;
+            left:0;
+            background-size: 160px 128px;
+            background-image: url("/client/img/snake.png");
+            z-index: 4;
+        }
+        .elbow {
+            width:32px;
+            height:32px;
+            position:absolute;
+            top:0;
+            left:0;
+            background-size: 160px 128px;
+            background-image: url("/client/img/snake.png");
+            z-index: 3;
+        }
+        .body_w {
+            width:1px;
+            height:32px;
+            position:absolute;
+            top:0;
+            left:0;
+            background-image: url("/client/img/body_w.png");
+            background-repeat: repeat-x;
+            z-index: 2;
+        }
+        .body_h {
+            width:32px;
+            height:1px;
+            position:absolute;
+            top:0;
+            left:0;
+            background-image: url("/client/img/body_h.png");
+            background-repeat: repeat-y;
+            z-index: 2;
+        }
+        .item {
+            width:10px;
+            height:10px;
+            margin-left: 5px;
+            margin-top: 5px;
+            background-color:red;
+            position:absolute;
+            top:0;
+            left:0;
+            border-radius: 5px;
+        }
+        #map {
+            width:896px;
+            height:896px;
+            border:5px solid red;
+            position:relative;
+        }
+        .right {
+            background-position: -128px 0;
+        }
+        .left {
+            background-position: -96px -32px;
+        }
+        .up {
+            background-position: -96px 0;
+        }
+        .down {
+            background-position: -128px -32px; /* 32 x 32 */
+        }
+        body {
+            width: 810px;
+        }
+    </style>
+</head>
+
+<body>
+<div>
+    <div id="map" class="map">
+    </div>
+</div>
+<script src="http://code.jquery.com/jquery-1.10.1.min.js"></script>
+<script>
+    /*global io $ */
+    var lastDir = "down";
+    var players = {};
+    //var socket = io(IP_SERVER);
+    var gamepad = new PxGamepad();
+    var padDir = "down";
+    var speed = false;
+
+    var config = {
+        port : 1234,
+        //url : "http://localhost:1234/", // For uploading
+        dir : {"right":{x:1, y:0}, "left":{x:-1, y:0}, "up":{x:0, y:-1}, "down":{x:0, y:1}},
+        elbow : {"lu":{x:0, y:-32}, "ld":{x:0, y:0}, "ru":{x:-64, y:-64}, "rd":{x:-64, y:0}},
+        map : {w:896, h:896},
+        player : {w: 32, h:32}
+    };
+
+    function addVertice(player, x, y, lastDir, newDir) {
+        var dir = null;
+        if((lastDir == "left" && newDir == "up") || (lastDir == "down" && newDir == "right"))
+            dir = "lu";
+        else if((lastDir == "left" && newDir == "down") || (lastDir == "up" && newDir == "right"))
+            dir = "ld";
+        else if((lastDir == "right" && newDir == "up") || (lastDir == "down" && newDir == "left"))
+            dir = "ru";
+        else if((lastDir == "right" && newDir == "down") || (lastDir == "up" && newDir == "left"))
+            dir = "rd";
+        var id = Math.floor(Math.random() * 1000000);
+        if(dir) {
+            var html = "<div id='" + id + "' class='elbow'></div>";
+            $("#map").append(html);
+            var elbowSelector = $("#" + id);
+            elbowSelector.css({
+                "left": players[name].x,
+                "top": players[name].y,
+                "background-position": config.elbow[dir].x + "px " + config.elbow[dir].y + "px"
+            });
+            if(players[name].body.length - 1 >= 0){
+                var lastPart = players[name].body[players[name].body.length - 1];
+                if(Math.abs(lastPart.x - x) > 0) {
+                    var html = "<div id='body-" + id + "' class='body_w'></div>";
+                    $("#map").append(html);
+                    var bodySelector = $("#body-" + id);
+
+                    bodySelector.css({
+                        "left": ((lastPart.x < x) ? lastPart.x : x) + 32,
+                        "top": lastPart.y,
+                        "width": Math.abs(lastPart.x - x) - 32
+                    });
+                }
+                else {
+                    var html = "<div id='body-" + id + "' class='body_h'></div>";
+                    $("#map").append(html);
+                    var bodySelector = $("#body-" + id);
+                    bodySelector.css({
+                        "top": ((lastPart.y < y) ? lastPart.y : y) + 32,
+                        "left": lastPart.x,
+                        "height": Math.abs(lastPart.y - y) - 32
+                    });
+                }
+            }
+            player.body.push({"x": x, "y": y, "part": dir});
+            console.log("test");
+        }
+    }
+
+    players["Keysim"] = {x:15, y:10, rot:"down", speed:2, name:"Keysim", body:[]};
+
+    for(var name in players){
+        var html  = "<div id='" + name + "' class='player'></div>";
+        $("#map").append(html);
+        console.log("Connexion of " + name);
+        var playerSelector = $("#" + name);
+        playerSelector.css({"left":players[name].x, "top":players[name].y});
+        playerSelector.addClass(players[name].rot);
+    }
+
+    setInterval(move, 10);
+
+    function move() {
+        for(var name in players){
+            var player = players[name];
+            var new_x = player.x + config.dir[player.rot].x * player.speed * (speed ? 2 : 1);
+            var new_y = player.y + config.dir[player.rot].y * player.speed * (speed ? 2 : 1);
+            if(new_x < config.map.w - config.player.w && new_x > 0)
+                player.x = new_x;
+            if(new_y < config.map.h - config.player.h && new_y > 0)
+                player.y = new_y;
+
+            if(player.x == new_x && player.y == new_y) { // Only if it moved
+                var playerSelector = $("#" + name);
+                playerSelector.css("left", player.x);
+                playerSelector.css("top", player.y);
+                playerSelector.removeClass();
+                playerSelector.addClass("player " + player.rot);
+                for (var i = 0; player.body[i]; i++) {
+
+                }
+            }
+        }
+    }
+
+    gamepad.start();
+
+    /*gamepad.on('a', function() {
+     console.log("test");
+     //socket.emit("move", "up");
+     });*/
+
+    function getDir(x, y) {
+        if(x > 0.3 && y > -0.5 && y < 0.5)
+            return "right";
+        else if(x < -0.3 && y > -0.5 && y < 0.5)
+            return "left";
+        else if(y < -0.3 && x > -0.5 && x < 0.5)
+            return "up";
+        else if(y > 0.3 && x > -0.5 && x < 0.5)
+            return "down";
+        else
+            return padDir;
+    }
+
+    setInterval(function() {
+        gamepad.update();
+        if(gamepad.buttons["a"] && !speed){
+            //socket.emit("speed");
+            speed = true;
+            console.log("Speed !");
+        }
+        else if(!gamepad.buttons["a"] && speed){
+            //socket.emit("speed");
+            speed = false;
+            console.log("Speed OFF!");
+        }
+        padDir = getDir(gamepad.leftStick.x, gamepad.leftStick.y);
+        //console.log(padDir);
+        if(config.dir[padDir].x + config.dir[lastDir].x == 0 && config.dir[padDir].y + config.dir[lastDir].y == 0)
+            padDir = lastDir;
+        if(lastDir != padDir){
+            addVertice(players[name], players[name].x, players[name].y, lastDir, padDir);
+            lastDir = padDir;
+            players["Keysim"].rot = lastDir;
+            //move();
+            //socket.emit("move", padDir);
+        }
+    }, 25);
+
+    /*socket.on('msg', function(msg) {
+     console.log(msg);
+     });
+
+     socket.on('player/add', function(player) {
+     if (!players[player.name]){
+     var html  = "<div id='" + player.name + "' class='player'></div>";
+     $("#map").append(html);
+     console.log("Connexion of " + player.name);
+     }
+     players[player.name] = player;
+     $("#" + player.name).css("left", player.x);
+     $("#" + player.name).css("top", player.y);
+     $("#" + player.name).addClass(player.rot);
+     });
+
+     socket.on('player/move', function(player) {
+     $("#" + player.name).css("left", player.x);
+     $("#" + player.name).css("top", player.y);
+     $("#" + player.name).removeClass();
+     $("#" + player.name).addClass("player " + player.rot);
+     });*/
+    /*var dir = "right";
+     $('html').keydown(function(event) {
+     var move = true;
+     if(event.which == 81 || event.which == 37)// Left
+     dir = "left";
+     else if(event.which == 90 || event.which == 38)// Up
+     dir = "up";
+     else if(event.which == 68 || event.which == 39)// Right
+     dir = "right";
+     else if(event.which == 83 || event.which == 40)// Down
+     dir = "down";
+     else
+     move = false;
+     if(event.which == 32)
+     socket.emit("speed");
+     if (move)
+     socket.emit("move", dir);
+     });*/
+</script>
+</body>
+</html>

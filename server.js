@@ -6,7 +6,7 @@ var app         = express();
 var bodyParser  = require('body-parser');
 
 
-app.use("/static", express.static(__dirname + '/static'));
+app.use("/", express.static(__dirname + '/client'));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
@@ -16,13 +16,13 @@ app.use(function (req, res, next) {
     next();
 });
 
-app.get('/', function(req, res) {
+/*app.get('/', function(req, res) {
     res.sendFile(__dirname + '/client/index.html');
-});
+});*/
 
 var server = http.createServer(app); // Routing pour les tests de clients + DOCUMENTATION de l'API
 
-io = io.listen(server); // Start server.
+/*io = io.listen(server); // Start server.
 
 var players = {};
 
@@ -49,10 +49,10 @@ io.sockets.on('connection', function (socket) {
             players["Keysim"].speed = 2;
     });
 
-    /*socket.on('disconnect', function() {
+    socket.on('disconnect', function() {
         io.emit('delete');
         //players.remove(this.id);
-    });*/
+    });
 });
 
 function move() {
@@ -65,7 +65,7 @@ function move() {
             players[name].y = new_y;
         io.emit("player/move", players[name]);
     }
-}
+}*/
 
 server.listen(config.port, "0.0.0.0");
 console.log("Server started. Waiting for a connexion...");
